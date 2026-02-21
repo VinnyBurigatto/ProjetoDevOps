@@ -6,41 +6,32 @@ import java.util.UUID;
 
 public class Pedido {
     
-    private UUID id;
-    private String cliente;
-    private List<Item> itens;
+    private final UUID id;
+    private final String cliente;
+    private final List<Item> itens;
     private StatusPedido status;
     private LocalDateTime dataHora;
 
     public Pedido(String cliente, List<Item> itens){
-       
+    
+         if (cliente == null || cliente.isBlank())
+            throw new IllegalArgumentException("Nome do cliente inválido");
+
         if (itens == null || itens.isEmpty())
             throw new IllegalArgumentException("O pedido de ter pelo menos um item!");
+    
+            this.id = UUID.randomUUID();
+            this.cliente = cliente;
+            this.itens = List.copyOf(itens);
+            this.status = StatusPedido.PENDENTE;
+            this.dataHora = LocalDateTime.now();
     }
 
     public void processar() {
-       
-        if (status == StatusPedido.PROCESSADO) {
-            throw new IllegalArgumentException("Pedido já PROCESSADO!");
-        }
-
-        if (status == StatusPedido.CANCELADO) {
-            throw new IllegalArgumentException("Pedido CANCELADO não pode ser processado.");
-        }
-
-        this.status = StatusPedido.PROCESSADO;
+       this.status = this.status.processar();
     }
 
     public void cancelar() {
-
-        if (status == StatusPedido.PROCESSADO) {
-            throw new IllegalArgumentException("Pedido não pode ser CANCELADO, já está processado!");
-        }
-
-        if (status == StatusPedido.CANCELADO) {
-            throw new IllegalArgumentException("Pedido já está CANCELADO!");
-        }
-
-        this.status = StatusPedido.CANCELADO;
+        this.status = this.status.cancelar();
     }
 }
