@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 
 public class Item {
     
-    private String produtoId;
-    private String nomeProduto;
-    private int quantidade;
-    private BigDecimal precoUnitario;
+    private final String produtoId;
+    private final String nomeProduto;
+    private final int quantidade;
+    private final BigDecimal precoUnitario;
 
     public Item(String produtoId, String nomeProduto, int quantidade, BigDecimal precoUnitario){
 
@@ -23,7 +23,7 @@ public class Item {
             throw new IllegalArgumentException("Quantidade de ser maior que zero");
         }
 
-         if (precoUnitario == null || precoUnitario.compareTo(BigDecimal.ZERO) <=0){
+        if (precoUnitario == null || precoUnitario.compareTo(BigDecimal.ZERO) <=0){
             throw new IllegalArgumentException("Preço Unitário Inválido");
         }
 

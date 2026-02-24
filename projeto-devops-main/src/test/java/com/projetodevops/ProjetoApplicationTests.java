@@ -1,4 +1,4 @@
-package com.projetodevops.projeto;
+package com.projetodevops;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

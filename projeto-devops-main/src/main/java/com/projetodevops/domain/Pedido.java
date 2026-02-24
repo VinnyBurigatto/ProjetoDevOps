@@ -14,7 +14,7 @@ public class Pedido {
 
     public Pedido(String cliente, List<Item> itens){
     
-         if (cliente == null || cliente.isBlank())
+        if (cliente == null || cliente.isBlank())
             throw new IllegalArgumentException("Nome do cliente inválido");
 
         if (itens == null || itens.isEmpty())
@@ -28,10 +28,14 @@ public class Pedido {
     }
 
     public void processar() {
-       this.status = this.status.processar();
+        this.status = this.status.processar();
     }
 
     public void cancelar() {
         this.status = this.status.cancelar();
     }
+
+    public StatusPedido getStatus() {
+        return status;
+}
 }
