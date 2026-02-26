@@ -13,60 +13,81 @@ import java.util.List;
 
 class PedidoTest {
 
+    private Pedido criarPedidoValido() {
+        Item item = new Item("Mouse#1",
+        "Mouse Corsair",
+        1,
+        new BigDecimal("99.00"));
+
+        List<Item> itens = List.of(item);
+            return new Pedido("Vinícius", itens);
+    }
+
     @Test
     void deveNascerComStatusPendente() {
-        
-        Item item = new Item(
-    "Mouse#1",
-    "Mouse Corsair",
-    1,
-    new BigDecimal("99.00")
-);
-
-    List<Item> itens = List.of(item);
+        Pedido pedido = criarPedidoValido();
     
-    Pedido pedido = new Pedido("Vinicius", itens);
-    
-    assertEquals(StatusPedido.PENDENTE, pedido.getStatus());
+        assertEquals(StatusPedido.PENDENTE, pedido.getStatus());
     
 }
 
     @Test
     void naoDevePermitirProcessarDuasVezes() {
-        Item item = new Item(
-    "Mouse#1",
-    "Mouse Corsair",
-    1,
-    new BigDecimal("99.00")
-);
-
-    List<Item> itens = List.of(item);
+        Pedido pedido = criarPedidoValido();
     
-    Pedido pedido = new Pedido("Vinicius", itens);
+        pedido.processar();
     
-    pedido.processar();
-    
-    assertThrows(IllegalStateException.class, () -> {pedido.processar();});
+        assertThrows(IllegalStateException.class, () -> {pedido.processar();});
     
 }
 
     @Test
     void naoDevePermitirCancelarPedidoProcessado() {
-        Item item = new Item(
-    "Mouse#1",
-    "Mouse Corsair",
-    1,
-    new BigDecimal("99.00")
-);
-
-    List<Item> itens = List.of(item);
+        Pedido pedido = criarPedidoValido();
     
-    Pedido pedido = new Pedido("Vinicius", itens);
+        pedido.processar();
     
-    pedido.processar();
-    
-    assertThrows(IllegalStateException.class, pedido::cancelar);
+        assertThrows(IllegalStateException.class, pedido::cancelar);
     
 }
+
+    @Test
+    void deveProcessarPedidoComSucesso() {
+        Pedido pedido = criarPedidoValido();
+
+        pedido.processar();
+
+        assertEquals(StatusPedido.PROCESSADO, pedido.getStatus());
+    }
+
+    @Test
+    void deveCancelarPedidoComSucesso() {
+        Pedido pedido = criarPedidoValido();
+
+        pedido.cancelar();
+
+        assertEquals(StatusPedido.CANCELADO, pedido.getStatus());
+
+    }
+
+    @Test
+    void naoDevePermitirProcessarPedidoCancelado() {
+        Pedido pedido = criarPedidoValido();
+
+        pedido.cancelar();
+
+        assertThrows(IllegalStateException.class, pedido::processar);
+    }
+
+    @Test
+    void naoDevePermitirCancelarPedidoCancelado() {
+        Pedido pedido = criarPedidoValido();
+
+        pedido.cancelar();
+
+        assertThrows(IllegalStateException.class, pedido::cancelar);
+        
+
+    }
 
 }
