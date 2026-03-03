@@ -15,7 +15,7 @@ public class PedidoController {
 
     @PostMapping
         public String criarPedido(@RequestBody CriarPedidoRequest request) {
-            pedidoService.criarPedido(request.getCliente());
+            pedidoService.criarPedido(request);
                 return "Pedido recebido para cliente: " + request.getCliente();
         }
 

@@ -37,5 +37,5 @@ public class Pedido {
 
     public StatusPedido getStatus() {
         return status;
-}
+    }
 }
