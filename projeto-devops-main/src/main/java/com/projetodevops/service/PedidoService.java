@@ -19,7 +19,7 @@ public class PedidoService {
         this.pedidoRepository = pedidoRepository;
     }
 
-    public criarPedido(CriarPedidoRequest request) {
+    public Pedido criarPedido(CriarPedidoRequest request) {
         
         List<ItemRequest> itensRequest = request.getItens();
         List<Item> itens = new ArrayList<>();

@@ -10,11 +10,11 @@ public class Pedido {
     private final String cliente;
     private final List<Item> itens;
     private StatusPedido status;
-    private LocalDateTime dataHora;
+    private final LocalDateTime dataHora;
 
     public Pedido(String cliente, List<Item> itens){
     
-        if (cliente == null || cliente.isBlank())
+        if (cliente == null || cliente.trim().isEmpty())
             throw new IllegalArgumentException("Nome do cliente inválido");
 
         if (itens == null || itens.isEmpty())
@@ -27,6 +27,15 @@ public class Pedido {
             this.dataHora = LocalDateTime.now();
     }
 
+    public Pedido(UUID id, String cliente, List<Item> itens, StatusPedido status, LocalDateTime dataHora) {
+
+        this.id = id;
+        this.cliente = cliente;
+        this.itens = List.copyOf(itens);
+        this.status = status;
+        this.dataHora = dataHora;
+    }
+
     public void processar() {
         this.status = this.status.processar();
     }
@@ -35,7 +44,28 @@ public class Pedido {
         this.status = this.status.cancelar();
     }
 
+    public UUID getId() {
+        return id;
+    }
+
+    public String getCliente() {
+        return cliente;
+    }
+
+    public List<Item> getItens() {
+        return itens;
+    }
+
     public StatusPedido getStatus() {
         return status;
     }
+
+    public void setStatus(StatusPedido status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getDataHora() {
+        return dataHora;
+    }
+
 }
