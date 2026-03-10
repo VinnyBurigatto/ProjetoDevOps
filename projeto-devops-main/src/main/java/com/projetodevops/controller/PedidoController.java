@@ -4,15 +4,17 @@ import org.springframework.web.bind.annotation.*;
 
 import com.projetodevops.dto.CriarPedidoRequest;
 import com.projetodevops.service.PedidoService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/pedidos")
 public class PedidoController {
 
-    @Autowired
-        private PedidoService pedidoService;
+    private final PedidoService pedidoService;
 
+    public PedidoController(PedidoService pedidoService) {
+        this.pedidoService = pedidoService;
+    }
+    
     @PostMapping
         public String criarPedido(@RequestBody CriarPedidoRequest request) {
             pedidoService.criarPedido(request);
