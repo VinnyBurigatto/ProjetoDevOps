@@ -3,6 +3,7 @@ package com.projetodevops.service;
 import com.projetodevops.domain.Item;
 import com.projetodevops.domain.Pedido;
 import com.projetodevops.domain.PedidoRepository;
+import com.projetodevops.domain.event.PedidoCriadoEvent;
 import com.projetodevops.dto.CriarPedidoRequest;
 import com.projetodevops.dto.ItemRequest;
 import org.springframework.stereotype.Service;
@@ -14,9 +15,11 @@ import java.util.List;
 public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
+    private final PedidoEventProducer pedidoEventProducer;
 
-    public PedidoService(PedidoRepository pedidoRepository) {
+    public PedidoService(PedidoRepository pedidoRepository, PedidoEventProducer pedidoEventProducer) {
         this.pedidoRepository = pedidoRepository;
+        this.pedidoEventProducer = pedidoEventProducer;
     }
 
     public Pedido criarPedido(CriarPedidoRequest request) {
@@ -31,6 +34,13 @@ public class PedidoService {
         }
 
         Pedido pedido = new Pedido(request.getCliente(), itens);
-            return pedidoRepository.salvar(pedido);
+        
+        Pedido pedidoSalvo = pedidoRepository.salvar(pedido);
+
+        PedidoCriadoEvent event = new PedidoCriadoEvent(pedidoSalvo.getId(), pedidoSalvo.getCliente(), pedidoSalvo.getDataHora());
+
+        pedidoEventProducer.publicar(event);
+
+        return pedidoSalvo;
     }
 }
