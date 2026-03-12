@@ -18,7 +18,7 @@ public class PedidoService {
     private final PedidoRepository pedidoRepository;
     private final PedidoEventPublisher pedidoEventPublisher;
 
-    public PedidoService(PedidoRepository pedidoRepository, PedidoEventPublisher pedidoEventPublisher, KafkaPedidoEventPublisher kafkaPedidoEventPublisher) {
+    public PedidoService(PedidoRepository pedidoRepository, PedidoEventPublisher pedidoEventPublisher) {
         this.pedidoRepository = pedidoRepository;
         this.pedidoEventPublisher = pedidoEventPublisher;
     }

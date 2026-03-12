@@ -1,4 +1,4 @@
-package com.projetodevops.service;
+package com.projetodevops.infrastructure.messaging.producer;
 
 import com.projetodevops.domain.event.PedidoCriadoEvent;
 import com.projetodevops.domain.event.PedidoEventPublisher;

@@ -1,4 +1,4 @@
-package com.projetodevops.service;
+package com.projetodevops.infrastructure.messaging.consumer;
 
 import com.projetodevops.domain.event.PedidoCriadoEvent;
 import org.springframework.kafka.annotation.KafkaListener;
