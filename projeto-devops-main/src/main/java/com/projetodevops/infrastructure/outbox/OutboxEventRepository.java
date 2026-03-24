@@ -1,5 +1,7 @@
 package com.projetodevops.infrastructure.outbox;
 
-public interface OutboxEventRepository {
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+public interface OutboxEventRepository extends MongoRepository<OutboxEvent, String> {
 
 }

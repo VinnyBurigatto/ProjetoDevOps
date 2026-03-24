@@ -1,14 +1,33 @@
 package com.projetodevops.infrastructure.outbox;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Document(collection = "outbox_events")
+
 public class OutboxEvent {
 
-    private UUID id;
+    @Id
+    private String id;
     private String tipoEvento;
     private String payload;
     private OutboxEventStatus status;
     private LocalDateTime criadoEm;
+    private LocalDateTime processadoEm;
+    private int tentativas;
+
+    public OutboxEvent() {}
+
+    public OutboxEvent(String tipoEvento, String payload){
+        this.id = UUID.randomUUID().toString();
+        this.tipoEvento = tipoEvento;
+        this.payload = payload;
+        this.status = OutboxEventStatus.PENDENTE;
+        this.criadoEm = LocalDateTime.now();
+        this.tentativas = 0;
+        this.processadoEm = null;
+    }
 
 }

@@ -4,7 +4,9 @@ import com.projetodevops.domain.Item;
 import com.projetodevops.domain.Pedido;
 import com.projetodevops.domain.PedidoRepository;
 import com.projetodevops.domain.event.PedidoCriadoEvent;
-import com.projetodevops.domain.event.PedidoEventPublisher;
+import com.projetodevops.infrastructure.outbox.OutboxEventRepository;
+import com.projetodevops.infrastructure.outbox.EventSerializer;
+import com.projetodevops.infrastructure.outbox.OutboxEvent;
 import com.projetodevops.dto.CriarPedidoRequest;
 import com.projetodevops.dto.ItemRequest;
 import org.springframework.stereotype.Service;
@@ -12,16 +14,18 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
-public class PedidoService {
+    @Service
+    public class PedidoService {
 
-    private final PedidoRepository pedidoRepository;
-    private final PedidoEventPublisher pedidoEventPublisher;
+        private final PedidoRepository pedidoRepository;
+        private final OutboxEventRepository outboxEventRepository;
+        private final EventSerializer eventSerializer;
 
-    public PedidoService(PedidoRepository pedidoRepository, PedidoEventPublisher pedidoEventPublisher) {
+    public PedidoService(PedidoRepository pedidoRepository, OutboxEventRepository outboxEventRepository, EventSerializer eventSerializer) {
         this.pedidoRepository = pedidoRepository;
-        this.pedidoEventPublisher = pedidoEventPublisher;
-    }
+        this.outboxEventRepository = outboxEventRepository;
+        this.eventSerializer = eventSerializer;
+    }   
 
     public Pedido criarPedido(CriarPedidoRequest request) {
         
@@ -40,7 +44,11 @@ public class PedidoService {
 
         PedidoCriadoEvent event = new PedidoCriadoEvent(pedidoSalvo.getId(), pedidoSalvo.getCliente(), pedidoSalvo.getDataHora());
 
-        pedidoEventPublisher.publicar(event);
+        String payload = eventSerializer.serializar(event);
+
+        OutboxEvent outboxEvent = new OutboxEvent(event.getClass().getSimpleName(), payload);
+            
+        outboxEventRepository.save(outboxEvent);
 
         return pedidoSalvo;
     }
