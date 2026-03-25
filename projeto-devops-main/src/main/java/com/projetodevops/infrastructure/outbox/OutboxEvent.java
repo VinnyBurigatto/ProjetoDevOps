@@ -51,9 +51,20 @@ public class OutboxEvent {
     }
 
     public void marcarComoErro() {
-        this.status = OutboxEventStatus.ERRO;
-        this.processadoEm = LocalDateTime.now();
         this.tentativas++;
+        
+        if (this.tentativas >= 3) {
+            
+            this.status = OutboxEventStatus.ERRO_FINAL;
+        
+        } else {
+            
+            this.status = OutboxEventStatus.ERRO;
+        
+        }
+
+        this.processadoEm = LocalDateTime.now();
+
     }
 
     public void incrementarTentativas() {

@@ -4,11 +4,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import com.projetodevops.domain.event.PedidoCriadoEvent;
 import com.projetodevops.domain.event.PedidoEventPublisher;
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class OutboxPublisher {
 
+    private static final Logger log = LoggerFactory.getLogger(OutboxPublisher.class);
     private final OutboxEventRepository repository;
     private final PedidoEventPublisher eventPublisher;
     private final EventSerializer serializer;
@@ -23,28 +25,46 @@ public class OutboxPublisher {
 
 @Scheduled(fixedDelay = 5000)
 public void publicarEventosPendentes() {
-    List<OutboxEvent> eventosPendentes = repository.findByStatus(OutboxEventStatus.PENDENTE);
-        for (OutboxEvent evento : eventosPendentes) {
-            try {
-                evento.marcarComoProcessando();
-                repository.save(evento);
 
-                Class<?> clazz = eventTypeMapper.getEventClass(evento.getTipoEvento());
+    log.info("Iniciando processamento de eventos do Outbox");
 
-                Object domainEvent = serializer.desserializar(evento.getPayload(), clazz);
+    int batchSize = 10;
 
-                eventPublisher.publicar((PedidoCriadoEvent) domainEvent);
+    for (int i = 0; i < batchSize; i++) {
+        var optionalEvento = repository.findNextPendingEventAndMarkAsProcessing();
 
-                evento.marcarComoEnviado();
-                repository.save(evento);
-
-            } catch (Exception e) {
-                evento.marcarComoErro();
-                evento.incrementarTentativas();
-                repository.save(evento);
-                e.printStackTrace();
-            }
+        if (optionalEvento.isEmpty()) {
+            break;
         }
+
+        OutboxEvent evento = optionalEvento.get();
+
+        log.info("Processando evento tipo={} tentativas={}", evento.getTipoEvento(), evento.getStatus());
+
+        try {
+            Class<?> clazz = eventTypeMapper.getEventClass(evento.getTipoEvento());
+
+            PedidoCriadoEvent domainEvent = (PedidoCriadoEvent) serializer.desserializar(evento.getPayload(), clazz);
+
+            eventPublisher.publicar(domainEvent);
+
+            log.info("Evento enviado com sucesso tipo={}", evento.getTipoEvento());
+
+            evento.marcarComoEnviado();
+
+            repository.save(evento);
+
+        } catch (Exception e) {
+            evento.marcarComoErro();
+
+            repository.save(evento);
+
+            log.error("Erro ao publicar evento tipo={}", evento.getTipoEvento(), e);
+        }
+
+        }
+
+
     }
 
 }

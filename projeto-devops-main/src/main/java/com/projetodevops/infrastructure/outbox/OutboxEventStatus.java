@@ -5,6 +5,7 @@ public enum OutboxEventStatus {
     PENDENTE,
     PROCESSANDO,
     ENVIADO,
-    ERRO
+    ERRO,
+    ERRO_FINAL
 
 }
