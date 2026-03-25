@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Document(collection = "outbox_events")
-
 public class OutboxEvent {
 
     @Id
@@ -28,6 +27,37 @@ public class OutboxEvent {
         this.criadoEm = LocalDateTime.now();
         this.tentativas = 0;
         this.processadoEm = null;
+    }
+
+    public String getTipoEvento() {
+        return tipoEvento;
+    }
+
+    public String getPayload() {
+        return payload;
+    }
+
+    public OutboxEventStatus getStatus() {
+        return status;
+    }
+
+    public void marcarComoProcessando() {
+        this.status = OutboxEventStatus.PROCESSANDO;
+    }
+
+    public void marcarComoEnviado() {
+        this.status = OutboxEventStatus.ENVIADO;
+        this.processadoEm = LocalDateTime.now();
+    }
+
+    public void marcarComoErro() {
+        this.status = OutboxEventStatus.ERRO;
+        this.processadoEm = LocalDateTime.now();
+        this.tentativas++;
+    }
+
+    public void incrementarTentativas() {
+        this.tentativas++;
     }
 
 }
