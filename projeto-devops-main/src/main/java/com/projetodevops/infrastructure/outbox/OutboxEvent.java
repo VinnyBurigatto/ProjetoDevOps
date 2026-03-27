@@ -2,6 +2,7 @@ package com.projetodevops.infrastructure.outbox;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import com.projetodevops.infrastructure.tracing.CorrelationIdContext;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -16,6 +17,7 @@ public class OutboxEvent {
     private LocalDateTime criadoEm;
     private LocalDateTime processadoEm;
     private int tentativas;
+    private String correlationId;
 
     public OutboxEvent() {}
 
@@ -27,6 +29,7 @@ public class OutboxEvent {
         this.criadoEm = LocalDateTime.now();
         this.tentativas = 0;
         this.processadoEm = null;
+        this.correlationId = CorrelationIdContext.getCorrelationId();
     }
 
     public String getTipoEvento() {
@@ -39,6 +42,10 @@ public class OutboxEvent {
 
     public OutboxEventStatus getStatus() {
         return status;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
     }
 
     public void marcarComoProcessando() {
