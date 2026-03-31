@@ -1,9 +1,10 @@
 package com.projetodevops.infrastructure.messaging.consumer;
 
-import com.projetodevops.domain.event.PedidoCriadoEvent;
-import com.projetodevops.infrastructure.messaging.idempotency.IdempotencyService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+
+import com.projetodevops.domain.event.PedidoCriadoEvent;
+import com.projetodevops.infrastructure.messaging.idempotency.IdempotencyService;
 
 @Component
 public class PedidoCriadoConsumer {
@@ -17,6 +18,10 @@ public class PedidoCriadoConsumer {
     @KafkaListener(topics = "pedidos-criados", groupId = "grupo-pedidos")
     
     public void consumir(PedidoCriadoEvent event) {
+
+        if (event.getCliente().equals("ERRO_DLQ")) {
+            throw new RuntimeException("Simulação de erro para teste DLQ");
+        }
 
         if (idempotencyService.alreadyProcessed(event.getEventId())) {
             System.out.println("Evento já processado: " + event.getEventId());

@@ -1,10 +1,11 @@
 package com.projetodevops.infrastructure.messaging.consumer;
 
-import org.springframework.stereotype.Component;
-import com.projetodevops.service.EventDLQAuditService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.stereotype.Component;
+
+import com.projetodevops.service.EventDLQAuditService;
 
 @Component
 public class PedidoCriadoDLQConsumer {
@@ -16,7 +17,7 @@ public class PedidoCriadoDLQConsumer {
     }
 
     @KafkaListener(
-        topics = ".*\\.DLQ",
+        topics = "pedidos-criados.DLQ",
         groupId = "grupo-dlq-audit"
     )
     public void consumirDLQ(

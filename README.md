@@ -1,105 +1,226 @@
-# 🚀 Projeto DevOps
+Arquitetura Event‑Driven com Spring Boot + Kafka + Outbox Pattern
 
-Um projeto de estudo e treinamento prático que integra **Spring Boot**, **Apache Kafka**, **MongoDB** e **Docker** em um ambiente simples de mensageria. O objetivo é demonstrar o envio de mensagens para um tópico Kafka, consumo dessas mensagens por um consumer e armazenamento no MongoDB.
+Projeto backend construído com foco em arquitetura orientada a eventos, resiliência em mensageria e boas práticas utilizadas em ambientes reais de produção.
 
-## 🛠️ Tecnologias Utilizadas
+A aplicação implementa criação de pedidos com publicação confiável de eventos utilizando Outbox Pattern, tratamento automático de falhas com Retry + Backoff, envio para Dead Letter Queue (DLQ) e persistência de auditoria no MongoDB.
 
-- Java 17
-- Spring Boot
-- Apache Kafka
-- Apache Zookeeper
-- MongoDB
-- Docker e Docker Compose
-- Git e GitHub
-- VSCode
+📐 Arquitetura da solução
 
-## ⚙️ Funcionalidades
+Diagrama simplificado do fluxo de eventos:
 
-- Envio de mensagens via API REST para o Kafka
-- Consumo automático das mensagens Kafka por um listener
-- Armazenamento dos dados no MongoDB
-- Leitura de configurações via `application.yml`
+flowchart LR
 
-## 🔌 Endpoints da API
 
-### ➕ `POST /mensagens`
+A[Client] --> B[REST Controller]
+B --> C[Service Layer]
+C --> D[(Pedido Database)]
+C --> E[(Outbox Table)]
 
-Envia uma nova mensagem para o tópico Kafka e armazena no MongoDB.
 
-**Exemplo de JSON enviado:**
-```json
-{
-  "conteudo": "Mensagem de teste"
-}
-```
+E --> F[Outbox Publisher Scheduler]
+F --> G[Kafka Topic pedidos-criados]
 
-### 📄 `GET /projeto`
 
-Retorna todas as configurações carregadas do arquivo `application.yml`.
+G --> H[Kafka Consumer]
+H --> I{Falha?}
 
----
 
-## 🐳 Como Executar com Docker
+I -- Não --> J[Processamento OK]
+I -- Sim --> K[Retry com Backoff]
 
-1. Certifique-se de ter o **Docker** e o **Docker Compose** instalados.
-2. Suba os containers com:
-```bash
-docker-compose up -d
-```
-3. Rode sua aplicação Spring Boot normalmente (pelo VSCode ou terminal).
 
----
+K --> L{Falhou novamente?}
 
-## 🧪 Testando a API
 
-Você pode usar o [Postman](https://www.postman.com/) ou `curl`:
+L -- Sim --> M[DLQ pedidos-criados.DLQ]
+M --> N[DLQ Consumer]
+N --> O[(MongoDB Audit Store)]
 
-```bash
-curl -X POST http://localhost:8080/mensagens \
-  -H "Content-Type: application/json" \
-  -d '{"conteudo": "Olá, Kafka + Mongo!"}'
-```
 
-Depois acesse `http://localhost:8080/projeto` para verificar as configurações do projeto.
+L -- Não --> J
 
----
+Essa arquitetura garante:
 
-## 📁 Estrutura do Projeto
+consistência eventual
+tolerância a falhas
+rastreabilidade completa de eventos
+possibilidade de reprocessamento futuro
 
-```
-📦 projeto-devops
- ┣ 📂 src
- ┃ ┣ 📂 main
- ┃ ┃ ┣ 📂 java
- ┃ ┃ ┃ ┗ 📂 com.exemplo.projeto
- ┃ ┃ ┃   ┣ 📜 ProjetoController.java
- ┃ ┃ ┃   ┣ 📜 KafkaProducer.java
- ┃ ┃ ┃   ┣ 📜 KafkaConsumer.java
- ┃ ┃ ┃   ┣ 📜 Mensagem.java
- ┃ ┃ ┃   ┗ 📜 ConfiguracaoProjeto.java
- ┃ ┃ ┣ 📂 resources
- ┃ ┃ ┃ ┗ 📜 application.yml
- ┣ 📜 docker-compose.yml
- ┣ 📜 pom.xml
- ┗ 📜 README.md
-```
+🧱 Stack utilizada
+Tecnologia	Finalidade
+Java 17	Runtime principal
+Spring Boot	Framework backend
+Spring Kafka	Integração com mensageria
+Apache Kafka	Event streaming
+MongoDB	Auditoria de eventos DLQ
+Docker	Infraestrutura local
+Maven	Build tool
 
----
+📂 Estrutura do projeto
 
-## 👨‍💻 Autor
+Organização baseada em separação por responsabilidades seguindo princípios de Clean Architecture:
 
-Desenvolvido por **Vinícius Burigatto Mota**  
-📧 [vinicius.burigatto@hotmail.com](mailto:vinicius.burigatto@hotmail.com)  
-🔗 [GitHub: VinnyBurigatto](https://github.com/VinnyBurigatto/projeto-devops)
+controller
+service
+repository
+infrastructure
+messaging
+outbox
+config
+filter
 
----
+Responsabilidades principais:
 
-## 🏁 Status do Projeto
+Controller
 
-✅ Finalizado para fins de estudo e demonstração.
+Exposição da API REST.
 
----
+Service
 
-## 📅 Última Atualização
+Orquestração das regras de negócio.
 
-Junho de 2025
+Repository
+
+Persistência de dados.
+
+Messaging
+
+Consumers Kafka e tratamento de eventos.
+
+Outbox
+
+Publicação confiável de eventos assíncronos.
+
+Config
+
+Configurações Kafka, Retry e DLQ.
+
+📦 Outbox Pattern
+
+Garante consistência entre persistência do pedido e publicação do evento.
+
+Fluxo:
+
+Pedido salvo no banco
+Evento salvo na tabela Outbox
+Scheduler publica evento no Kafka
+Evento marcado como processado
+
+Evita perda de eventos em cenários de falha.
+
+🔁 Retry automático com Backoff
+
+Consumidores Kafka possuem retry automático configurado.
+
+Características:
+
+múltiplas tentativas automáticas
+atraso progressivo entre tentativas
+envio automático para DLQ após falha definitiva
+
+☠️ Dead Letter Queue (DLQ)
+
+Mensagens com falha definitiva são enviadas automaticamente para:
+
+pedidos-criados.DLQ
+
+Permite:
+
+isolamento de falhas
+troubleshooting
+reprocessamento posterior
+
+🧾 Auditoria de eventos com falha
+
+Eventos enviados para DLQ são persistidos no MongoDB contendo:
+
+payload original
+mensagem de erro
+tópico
+partition
+offset
+timestamp
+
+Facilita análise e observabilidade.
+
+🆔 Correlation ID
+
+Cada requisição recebe automaticamente um Correlation ID.
+
+Benefícios:
+
+rastreamento ponta‑a‑ponta
+debugging facilitado
+observabilidade distribuída
+
+▶️ Como executar o projeto
+Pré‑requisitos
+
+Instalar:
+
+Docker
+Java 17
+Maven
+Subir infraestrutura
+docker compose up -d
+
+Serviços iniciados:
+
+Kafka
+MongoDB
+Executar aplicação
+mvn spring-boot:run
+Criar pedido (teste)
+curl -X POST http://localhost:8080/pedidos \
+-H "Content-Type: application/json" \
+-d '{
+  "cliente": "Cliente Teste",
+  "itens": [
+    {
+      "produtoId": "1",
+      "nomeProduto": "Notebook",
+      "quantidade": 1,
+      "precoUnitario": 3500.00
+    }
+  ]
+}'
+
+🧪 Simulação de falha controlada
+
+O consumer principal possui uma exceção proposital para demonstrar:
+
+retry automático
+envio para DLQ
+persistência no MongoDB
+
+🔎 Observabilidade
+
+O sistema registra:
+
+correlation id
+eventos publicados
+retries executados
+mensagens enviadas para DLQ
+
+🎯 Objetivo do projeto
+
+Projeto desenvolvido com foco em estudo prático de:
+
+arquitetura orientada a eventos
+resiliência em mensageria
+consistência eventual
+padrões utilizados em sistemas distribuídos
+
+📌 Evoluções futuras
+
+Possíveis melhorias planejadas:
+
+endpoint para reprocessamento da DLQ
+métricas com Prometheus
+tracing distribuído
+testes de integração com Testcontainers
+
+👨‍💻 Autor
+Vinícius Burigatto Mota
+
+Projeto desenvolvido como parte da formação prática em backend com foco em arquitetura distribuída e práticas DevOps.
