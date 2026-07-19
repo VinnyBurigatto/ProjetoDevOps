@@ -12,30 +12,32 @@ flowchart LR
 
 
 A[Client] --> B[REST Controller]
+
 B --> C[Service Layer]
+
 C --> D[(Pedido Database)]
+
 C --> E[(Outbox Table)]
 
-
 E --> F[Outbox Publisher Scheduler]
+
 F --> G[Kafka Topic pedidos-criados]
 
-
 G --> H[Kafka Consumer]
+
 H --> I{Falha?}
 
-
 I -- Não --> J[Processamento OK]
-I -- Sim --> K[Retry com Backoff]
 
+I -- Sim --> K[Retry com Backoff]
 
 K --> L{Falhou novamente?}
 
-
 L -- Sim --> M[DLQ pedidos-criados.DLQ]
-M --> N[DLQ Consumer]
-N --> O[(MongoDB Audit Store)]
 
+M --> N[DLQ Consumer]
+
+N --> O[(MongoDB Audit Store)]
 
 L -- Não --> J
 
